@@ -1,0 +1,251 @@
+{
+  "entities": {
+    "Garden": {
+      "title": "Garden Workspace",
+      "description": "Represents a plant care workspace storing initialization state and metadata.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "seeded": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      },
+      "required": ["id", "name", "seeded", "createdAt", "updatedAt"]
+    },
+    "Plant": {
+      "title": "Plant",
+      "description": "A tracked plant with care frequencies, scheduled dates, and sunlight requirements.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "gardenId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "plantType": {
+          "type": "string",
+          "enum": ["Flowering", "Succulent", "Indoor", "Herb", "Foliage", "Outdoor"]
+        },
+        "plantingDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "maxLength": 10
+        },
+        "wateringFrequencyDays": {
+          "type": "integer"
+        },
+        "lastWateredDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "maxLength": 10
+        },
+        "nextWateringDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "maxLength": 10
+        },
+        "fertilizerFrequencyDays": {
+          "type": "integer"
+        },
+        "lastFertilizedDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "maxLength": 10
+        },
+        "nextFertilizingDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "maxLength": 10
+        },
+        "pruningFrequencyDays": {
+          "type": "integer"
+        },
+        "pruningScheduleLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "lastPrunedDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "maxLength": 10
+        },
+        "nextPruningDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "maxLength": 10
+        },
+        "sunlightRequirement": {
+          "type": "string",
+          "enum": ["Direct Sunlight", "Indirect Sunlight", "Shade"]
+        },
+        "sunlightNotes": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "imageUrl": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      },
+      "required": [
+        "id",
+        "gardenId",
+        "name",
+        "plantType",
+        "plantingDate",
+        "wateringFrequencyDays",
+        "lastWateredDate",
+        "nextWateringDate",
+        "fertilizerFrequencyDays",
+        "lastFertilizedDate",
+        "nextFertilizingDate",
+        "pruningFrequencyDays",
+        "pruningScheduleLabel",
+        "lastPrunedDate",
+        "nextPruningDate",
+        "sunlightRequirement",
+        "sunlightNotes",
+        "imageUrl",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ActivityLog": {
+      "title": "Completed Activity Log",
+      "description": "Historical log of completed watering, fertilizing, and pruning activities.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "gardenId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "plantId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "plantName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "plantType": {
+          "type": "string",
+          "enum": ["Flowering", "Succulent", "Indoor", "Herb", "Foliage", "Outdoor"]
+        },
+        "activityType": {
+          "type": "string",
+          "enum": ["Watering", "Fertilizing", "Pruning"]
+        },
+        "scheduledDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "maxLength": 10
+        },
+        "completedDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "maxLength": 10
+        },
+        "completedAt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "nextDueDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "maxLength": 10
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 300
+        }
+      },
+      "required": [
+        "id",
+        "gardenId",
+        "plantId",
+        "plantName",
+        "plantType",
+        "activityType",
+        "scheduledDate",
+        "completedDate",
+        "completedAt",
+        "nextDueDate",
+        "notes"
+      ]
+    }
+  },
+  "firestore": {
+    "/gardens/{gardenId}": {
+      "schema": { "$ref": "#/entities/Garden" },
+      "description": "Garden workspace document tracking sample-data initialization."
+    },
+    "/gardens/{gardenId}/plants/{plantId}": {
+      "schema": { "$ref": "#/entities/Plant" },
+      "description": "Plants belonging to a garden workspace."
+    },
+    "/gardens/{gardenId}/activities/{activityId}": {
+      "schema": { "$ref": "#/entities/ActivityLog" },
+      "description": "Completed care activities belonging to a garden workspace."
+    }
+  }
+}

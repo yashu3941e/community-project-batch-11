@@ -1,0 +1,181 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: deny everything by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Startup connection check document
+    match /test/{docId} {
+      allow get: if docId == 'connection';
+    }
+
+    // --- Primitive Validators ---
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidIsoDate(val) {
+      return val is string && val.size() == 10 && val.matches('^\\d{4}-\\d{2}-\\d{2}$');
+    }
+
+    function isValidTimestampStr(val) {
+      return val is string && val.size() >= 10 && val.size() <= 64;
+    }
+
+    function isValidPlantType(val) {
+      return val in ['Flowering', 'Succulent', 'Indoor', 'Herb', 'Foliage', 'Outdoor'];
+    }
+
+    function isValidSunlight(val) {
+      return val in ['Direct Sunlight', 'Indirect Sunlight', 'Shade'];
+    }
+
+    function isValidActivityType(val) {
+      return val in ['Watering', 'Fertilizing', 'Pruning'];
+    }
+
+    function isValidFrequency(val) {
+      return val is int && val >= 1 && val <= 365;
+    }
+
+    // --- Entity Validation Blueprints ---
+    function isValidGarden(data, gardenId) {
+      return data.keys().hasAll(['id', 'name', 'seeded', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'name', 'seeded', 'createdAt', 'updatedAt'])
+        && data.id == gardenId
+        && isValidId(data.id)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 100
+        && data.seeded is bool
+        && isValidTimestampStr(data.createdAt)
+        && isValidTimestampStr(data.updatedAt);
+    }
+
+    function isValidPlant(data, gardenId, plantId) {
+      return data.keys().hasAll([
+          'id', 'gardenId', 'name', 'plantType', 'plantingDate',
+          'wateringFrequencyDays', 'lastWateredDate', 'nextWateringDate',
+          'fertilizerFrequencyDays', 'lastFertilizedDate', 'nextFertilizingDate',
+          'pruningFrequencyDays', 'pruningScheduleLabel', 'lastPrunedDate', 'nextPruningDate',
+          'sunlightRequirement', 'sunlightNotes', 'imageUrl', 'notes',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'gardenId', 'name', 'plantType', 'plantingDate',
+          'wateringFrequencyDays', 'lastWateredDate', 'nextWateringDate',
+          'fertilizerFrequencyDays', 'lastFertilizedDate', 'nextFertilizingDate',
+          'pruningFrequencyDays', 'pruningScheduleLabel', 'lastPrunedDate', 'nextPruningDate',
+          'sunlightRequirement', 'sunlightNotes', 'imageUrl', 'notes',
+          'createdAt', 'updatedAt'
+        ])
+        && data.id == plantId
+        && data.gardenId == gardenId
+        && isValidId(data.id)
+        && isValidId(data.gardenId)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 100
+        && isValidPlantType(data.plantType)
+        && isValidIsoDate(data.plantingDate)
+        && isValidFrequency(data.wateringFrequencyDays)
+        && isValidIsoDate(data.lastWateredDate)
+        && isValidIsoDate(data.nextWateringDate)
+        && isValidFrequency(data.fertilizerFrequencyDays)
+        && isValidIsoDate(data.lastFertilizedDate)
+        && isValidIsoDate(data.nextFertilizingDate)
+        && isValidFrequency(data.pruningFrequencyDays)
+        && data.pruningScheduleLabel is string && data.pruningScheduleLabel.size() >= 1 && data.pruningScheduleLabel.size() <= 120
+        && isValidIsoDate(data.lastPrunedDate)
+        && isValidIsoDate(data.nextPruningDate)
+        && isValidSunlight(data.sunlightRequirement)
+        && data.sunlightNotes is string && data.sunlightNotes.size() <= 240
+        && data.imageUrl is string && data.imageUrl.size() <= 500
+        && data.notes is string && data.notes.size() <= 500
+        && isValidTimestampStr(data.createdAt)
+        && isValidTimestampStr(data.updatedAt);
+    }
+
+    function isValidActivityLog(data, gardenId, activityId) {
+      return data.keys().hasAll([
+          'id', 'gardenId', 'plantId', 'plantName', 'plantType',
+          'activityType', 'scheduledDate', 'completedDate', 'completedAt',
+          'nextDueDate', 'notes'
+        ])
+        && data.keys().hasOnly([
+          'id', 'gardenId', 'plantId', 'plantName', 'plantType',
+          'activityType', 'scheduledDate', 'completedDate', 'completedAt',
+          'nextDueDate', 'notes'
+        ])
+        && data.id == activityId
+        && data.gardenId == gardenId
+        && isValidId(data.id)
+        && isValidId(data.gardenId)
+        && isValidId(data.plantId)
+        && data.plantName is string && data.plantName.size() >= 1 && data.plantName.size() <= 100
+        && isValidPlantType(data.plantType)
+        && isValidActivityType(data.activityType)
+        && isValidIsoDate(data.scheduledDate)
+        && isValidIsoDate(data.completedDate)
+        && isValidTimestampStr(data.completedAt)
+        && isValidIsoDate(data.nextDueDate)
+        && data.notes is string && data.notes.size() <= 300;
+    }
+
+    // --- Garden Workspace Rules ---
+    match /gardens/{gardenId} {
+      allow get: if isValidId(gardenId);
+      allow list: if false;
+      allow create: if isValidId(gardenId) && isValidGarden(incoming(), gardenId);
+      allow update: if isValidId(gardenId)
+        && isValidGarden(incoming(), gardenId)
+        && incoming().id == existing().id
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'seeded', 'updatedAt']);
+      allow delete: if false;
+
+      // --- Plants Subcollection ---
+      match /plants/{plantId} {
+        allow get: if isValidId(gardenId) && isValidId(plantId);
+        allow list: if isValidId(gardenId) && resource.data.gardenId == gardenId;
+        allow create: if isValidId(gardenId)
+          && isValidId(plantId)
+          && isValidPlant(incoming(), gardenId, plantId)
+          && existsAfter(/databases/$(database)/documents/gardens/$(gardenId));
+        allow update: if isValidId(gardenId)
+          && isValidId(plantId)
+          && isValidPlant(incoming(), gardenId, plantId)
+          && incoming().id == existing().id
+          && incoming().gardenId == existing().gardenId
+          && incoming().createdAt == existing().createdAt
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'name', 'plantType', 'plantingDate',
+            'wateringFrequencyDays', 'lastWateredDate', 'nextWateringDate',
+            'fertilizerFrequencyDays', 'lastFertilizedDate', 'nextFertilizingDate',
+            'pruningFrequencyDays', 'pruningScheduleLabel', 'lastPrunedDate', 'nextPruningDate',
+            'sunlightRequirement', 'sunlightNotes', 'imageUrl', 'notes', 'updatedAt'
+          ]);
+        allow delete: if isValidId(gardenId) && isValidId(plantId);
+      }
+
+      // --- Activity Logs Subcollection ---
+      match /activities/{activityId} {
+        allow get: if isValidId(gardenId) && isValidId(activityId);
+        allow list: if isValidId(gardenId) && resource.data.gardenId == gardenId;
+        allow create: if isValidId(gardenId)
+          && isValidId(activityId)
+          && isValidActivityLog(incoming(), gardenId, activityId)
+          && existsAfter(/databases/$(database)/documents/gardens/$(gardenId));
+        allow update: if false;
+        allow delete: if isValidId(gardenId) && isValidId(activityId);
+      }
+    }
+  }
+}

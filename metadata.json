@@ -1,0 +1,6 @@
+{
+  "name": "Plant Care Reminder Application",
+  "description": "Botanical plant care manager for tracking plants, watering reminders, fertilizer schedules, pruning routines, and sunlight requirements.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
